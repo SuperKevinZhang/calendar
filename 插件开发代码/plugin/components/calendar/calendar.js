@@ -1,4 +1,6 @@
 // plugin/components/calendar/calendar.js
+import {isLeftSlide, isRightSlide} from "../calendar";
+
 /**
  * 属性：
  * 01、year：年份：整型
@@ -16,12 +18,12 @@
  * 12、cellSize: 单元格大小 整型
  * 13、daysColor：设置日期字体、背景颜色
  * 14、activeType: 日期背景效果（正方形、圆形）[rounded, square]
- * 
+ *
  * 事件方法：
  * 1、nextMonth：点击下个月
  * 2、prevMonth：点击上个月
  * 3、dateChange: 日期选择器变化
- * 
+ *
  * 样式：
  * calendar-style 日历整体样式
  * header-style 标题样式
@@ -31,6 +33,9 @@
 const lunar = require('./lunar.js');
 const minYear = 1900;
 const maxYear = 2099;
+
+
+
 
 Component({
     /**
@@ -181,7 +186,11 @@ Component({
         max_year: 2099, // 最大年份
         max_month: 12,  // 最大月份
         min_year: 1900, // 最小年份
-        min_month: 1    // 最小月份
+        min_month: 1  ,  // 最小月份
+        gesture:{
+          startX:0,
+          startY:0
+        },
     },
 
     /**
@@ -290,7 +299,7 @@ Component({
                 const month = parseInt(newDate.split('-')[1]);
                 if (!isNaN(year) && year <= 2099 && !isNaN(month) && month >= 1 && month <= 12) {
                     this.setData({
-                        endDate: newDate,
+                        startDate: newDate,
                         max_year: year,
                         max_month: month
                     });
@@ -431,7 +440,9 @@ Component({
                     month: prev_month,
                     info: 'prev',
                     color: '#c3c6d1',
-                    background: 'transparent'
+                    background: 'transparent',
+                    className:''
+
                 });
             }
 
@@ -450,7 +461,8 @@ Component({
                     month: next_month,
                     info: 'next',
                     color: '#c3c6d1',
-                    background: 'transparent'
+                    background: 'transparent',
+                    className:''
                 });
             }
 
@@ -465,7 +477,8 @@ Component({
                     month: month,
                     info: 'current',
                     color: '#4a4f74',
-                    background: 'transparent'
+                    background: 'transparent',
+                    className:''
                 });
             }
             const days_range = temp;                                   // 本月
@@ -499,6 +512,7 @@ Component({
             for (let i = 0; i < this.data.days_color.length; i++) {
                 const item = this.data.days_color[i];
                 const background = item.background ? item.background : 'transparent';
+
                 for (let j = 0; j < days.length; j++) {
                     if (days[j].info == item.month && days[j].day == item.day) {
                         if (item.color) {
@@ -506,6 +520,10 @@ Component({
                         }
                         if (item.background) {
                             days[j].background = item.background + '!important';
+                        }
+                        if(item.className){
+                          days[j].className = item.className;
+                          console.log("className:"+days[j].className);
                         }
                     }
                 }
@@ -637,7 +655,79 @@ Component({
                 background: click_day.background
             };
             this.triggerEvent('dayClick', eventDetail);
-        }
+        },
+
+      /***********************************************************/
+
+        /**
+         * 左滑
+         * @param {object} e 事件对象
+         * @returns {boolean} 布尔值
+         */
+        isLeftSlide2(e) {
+          const { startX, startY } = this.data.gesture;
+          if (this.slideLock) {
+            const t = e.touches[ 0 ];
+            const deltaX = t.clientX - startX;
+            const deltaY = t.clientY - startY;
+            if (deltaX < -60 && deltaY < 20 && deltaY > -20) {
+              this.slideLock = false;
+              return true;
+            } else {
+              return false;
+            }
+          }
+        },
+        /**
+         * 右滑
+         * @param {object} e 事件对象
+         * @returns {boolean} 布尔值
+         */
+        isRightSlide2(e) {
+          const { startX, startY } = this.data.gesture;
+          if (this.slideLock) {
+            const t = e.touches[ 0 ];
+            const deltaX = t.clientX - startX;
+            const deltaY = t.clientY - startY;
+
+            if (deltaX > 60 && deltaY < 20 && deltaY > -20) {
+              this.slideLock = false;
+              return true;
+            } else {
+              return false;
+            }
+          }
+        },
+
+        /**
+         * 滑动事件 add by Kevin
+         * */
+        calendarTouchstart(e) {
+          const t = e.touches[ 0 ];
+          const startX = t.clientX;
+          const startY = t.clientY;
+          this.slideLock = true; // 滑动事件加锁
+          this.data.gesture.startX = startX;
+          this.data.gesture.startY = startY;
+          // this.setData({
+          //   'gesture.startX': startX,
+          //   'gesture.startY': startY
+          // });
+          //console.log('开始滑动');
+
+        },
+        calendarTouchmove(e) {
+          if (this.isLeftSlide2(e)) {
+            console.log('左滑');
+            this.nextMonth();
+            //conf.chooseNextMonth.call(this);
+          }
+          if (this.isRightSlide2(e)) {
+            console.log('右滑');
+            this.prevMonth();
+            //conf.choosePrevMonth.call(this);
+          }
+        },
     },
 
     created: function () {
@@ -657,6 +747,6 @@ Component({
     externalClasses: [
         'calendar-style',     // 日历整体样式
         'header-style',       // 标题样式
-        'board-style',        // 面板样式        
+        'board-style',        // 面板样式
     ]
 })
