@@ -1,3 +1,40 @@
+基于此日历基础上增加以下功能
+
+## 1:日历左右滑动,更符合移动端操作
+
+  由于已经修改了原文件,所以不适合添加插件的方式添加.添加方式
+  
+  1.1 将plugin\components\calendar目录copy到自己项目目录
+  
+  1.2 添加引用,(原生小程序在json里面添加,wepy在config中添加)
+  
+     "usingComponents": {
+        "calendar": "../plugin/components/calendar"
+      }
+      
+  1.3 其他用法与原插件一致
+  
+## 2:自定义日期样式
+
+  原有的配置只适合设置背景和字体颜色,实际情况中可能需要用到图片背景或者圆框,所以在这里添加了日期Day Cell的css样式;
+  
+  使用方法与原来的样式设定类似,添加了className属性,指向自己设定的css,注意这个css需要写在calendar.wxss里面
+  
+  如:
+  
+  
+  ```
+  .calendar-cell-customerCss{
+     border: 1px solid #0BB20C;
+    }
+  ```
+  
+  样式设定
+  
+  ```
+  this.days_style.push({ month: 'current', day: 12, color: 'white', background: '#CD4737', className:'calendar-cell-customerCss'});
+  ```
+
 ## 微信小程序「极点日历」插件
 
 「极点日历」插件支持 1900 年 1 月 ~ 2099 年 12 月这两百年间的公历和农历显示，插件提供了丰富的可配置属性，包括日期的显示方式、选择范围、是否显示农历等，可自定义来适配不同的使用场景。
